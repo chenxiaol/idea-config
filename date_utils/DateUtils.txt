@@ -335,11 +335,4 @@ public class DateUtils {
         return timeLeft;
     }
 
-    public static void main(String[] args) {
-        System.out.println(lastSecondOfDay(new Date()));
-        System.out.println(getCurrentDateTime());
-        System.out.println(getMonthDayCount(new Date()));
-        System.out.println(getMonthDayCount(DateUtils.str2Date("2017-02-03")));
-
-    }
 }
