@@ -1,0 +1,345 @@
+package file.util;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
+
+public class DateUtils {
+    public static final Timestamp ZERO_TIMESTAMP = new Timestamp(0);
+    public static final String FORMAT_DATE = "yyyy-MM-dd";
+    public static final String FORMAT_YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
+    public static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT_YYYY年MM月DD日HHMM = "yyyy年MM月dd日 HH:mm";
+
+    private static Logger logger = LoggerFactory.getLogger(DateUtils.class);
+
+    public static Date str2Date(String str, String pattern) {
+        Date date = null;
+        DateFormat format;
+        try {
+            if (str.length() < pattern.length()) {
+                pattern = pattern.substring(0, str.length());
+            } else if (str.length() > pattern.length()) {
+                str = str.substring(0, pattern.length());
+            }
+            format = new SimpleDateFormat(pattern, Locale.CHINESE);
+            date = format.parse(str);
+        } catch (Exception e) {
+            try {
+                format = new SimpleDateFormat(pattern, Locale.ENGLISH);
+                date = format.parse(str);
+            } catch (Exception e2) {
+            }
+        }
+        return date;
+    }
+
+    public static boolean vaildFormat(String str, String pattern) {
+        DateFormat format;
+        try {
+            if (str.length() != pattern.length()) {
+                return false;
+            }
+
+            format = new SimpleDateFormat(pattern, Locale.CHINESE);
+            format.setLenient(false);
+            format.parse(str);
+        } catch (Exception e) {
+            logger.debug("字符：{}转换成时间格式：{}，失败", str, pattern);
+            return false;
+        }
+        return true;
+    }
+
+    public static Date str2Date(String str) {
+        return str2Date(str, FORMAT_DATE);
+    }
+
+    public static Date str2DateTime(String str) {
+        return str2Date(str, FORMAT_DATETIME);
+    }
+
+    public static Timestamp str2Timestamp(String str) {
+        Timestamp rs = null;
+        try {
+            rs = Timestamp.valueOf(str);
+        } catch (Exception e) {
+            Date date = str2Date(str);
+            if (date != null) {
+                rs = new Timestamp(date.getTime());
+            }
+        }
+        return rs;
+    }
+
+    public static Timestamp toTimestamp(Date date) {
+        return new Timestamp(date.getTime());
+    }
+
+    public static String date2Str(Date date, String pattern) {
+        if (date == null) {
+            return null;
+        }
+        String str = null;
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(pattern);
+            str = format.format(date);
+            format = null;
+        } catch (Exception e) {
+        }
+        return str;
+    }
+
+    public static String datetime2Str2(Date dt) {
+        String tmstr = String.format("%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS", dt);
+        return tmstr;
+    }
+
+    public static String date2Str(Date date) {
+        return date2Str(date, FORMAT_DATE);
+    }
+
+    public static String date2Str() {
+        return date2Str(new Date());
+    }
+
+    public static String datetime2Str(Date date) {
+        return date2Str(date, FORMAT_DATETIME);
+    }
+
+    public static String getCurrentDateTime() {
+        return date2Str(new Date(), FORMAT_DATETIME);
+    }
+
+    public static String getCurrentDateTimeNum() {
+        return date2Str(new Date(), FORMAT_YYYYMMDDHHMMSS);
+    }
+
+    public static String getCurrentDate() {
+        return date2Str(new Date(), FORMAT_DATE);
+    }
+
+    public static int getCurrentYear() {
+        return Calendar.getInstance().get(Calendar.YEAR);
+    }
+
+    public static Timestamp now() {
+        return new Timestamp(System.currentTimeMillis());
+    }
+
+    public static Timestamp nowDay() {
+        return toTimestamp(today());
+    }
+
+
+    public static Date today() {
+        return formatDate(new Date(), FORMAT_DATE);
+    }
+
+    public static Date formatDate(Date date) {
+        return formatDate(date, FORMAT_DATE);
+    }
+
+    public static Timestamp formatDate(Timestamp date) {
+        return toTimestamp(formatDate(date, FORMAT_DATE));
+    }
+
+    public static Date formatDate(Date date, String pattern) {
+        try {
+            SimpleDateFormat format = new SimpleDateFormat(pattern);
+            return format.parse(format.format(date));
+        } catch (ParseException e) {
+        }
+        return null;
+    }
+
+    public static Date add(Date date, TimeUnit unit, long amount) {
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(date);
+            c.add(Calendar.MILLISECOND, (int) unit.toMillis(amount));
+            return c.getTime();
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public static Date add(Date date, int field, int amount) {
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(date);
+            c.add(field, amount);
+            return c.getTime();
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public static Date set(Date date, int hour, int minute, int second) {
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(date);
+            c.set(Calendar.HOUR_OF_DAY, hour);
+            c.set(Calendar.MINUTE, minute);
+            c.set(Calendar.SECOND, second);
+            return c.getTime();
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public static Date add(Date date, int year, int month, int day, int hour, int minute, int second) {
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(date);
+            c.add(Calendar.YEAR, year);
+            c.add(Calendar.MONTH, month);
+            c.add(Calendar.DATE, day);
+            c.add(Calendar.HOUR, hour);
+            c.add(Calendar.MINUTE, minute);
+            c.add(Calendar.SECOND, second);
+            return c.getTime();
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public static Timestamp add(Timestamp date, int field, int amount) {
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(date);
+            c.add(field, amount);
+            return new Timestamp(c.getTimeInMillis());
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public static Date addYear(Date date, int amount) {
+        return add(date, Calendar.YEAR, amount);
+    }
+
+    public static Date addMonth(Date date, int amount) {
+        return add(date, Calendar.MONTH, amount);
+    }
+
+    public static Date addDay(Date date, int amount) {
+        return add(date, Calendar.DATE, amount);
+    }
+
+    public static Date addWeek(Date date, int amount) {
+        return add(date, Calendar.WEEK_OF_YEAR, amount);
+    }
+
+    public static Date addHour(Date date, int amount) {
+        return add(date, Calendar.HOUR, amount);
+    }
+
+    public static Date addSecond(Date date, int amount) {
+        return add(date, Calendar.SECOND, amount);
+    }
+
+    public static Date getMonthHead(Date date) {
+        return formatDate(date, "yyyy-MM-01");
+    }
+
+    public static Date getMonthTail(Date date, String pattern) {
+        return formatDate(addSecond(addMonth(getMonthHead(date), 1), -1), pattern);
+    }
+
+    public static boolean isSameDay(Date date1, Date date2) {
+        if (date1 == null || date2 == null) {
+            return false;
+        }
+        return date2Str(date1).equals(date2Str(date2));
+    }
+
+    public static long getTimeDiff(Date date1, Date date2, TimeUnit unit) {
+        if (date1 == null || date2 == null) {
+            throw new IllegalArgumentException("date1:" + date1 + ", date2:" + date2 + " both cannot be null!!");
+        }
+        return unit.convert(date1.getTime() - date2.getTime(), TimeUnit.MILLISECONDS);
+    }
+
+    public static long getTimeDiff(Timestamp date1, Timestamp date2, TimeUnit unit) {
+        if (date1 == null || date2 == null) {
+            throw new IllegalArgumentException("date1:" + date1 + ", date2:" + date2 + " both cannot be null!!");
+        }
+        return unit.convert(date1.getTime() - date2.getTime(), TimeUnit.MILLISECONDS);
+    }
+
+    public static Date addMinute(Date startTime, int i) {
+        return add(startTime, Calendar.MINUTE, i);
+    }
+
+    public static String milli2str(long t) {
+        return DateUtils.datetime2Str(new Date(t));
+    }
+
+    public static Date lastSecondOfDay(Date date) {
+        return DateUtils.add(DateUtils.formatDate(date), 0, 0, 1, 0, 0, -1);
+    }
+
+    public static Date lastSecondOfToday() {
+        return DateUtils.add(DateUtils.formatDate(new Date()), 0, 0, 1, 0, 0, -1);
+    }
+
+    public static Date lastDayOfYear(int year) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(Calendar.YEAR, year);
+        calendar.roll(Calendar.DAY_OF_YEAR, -1);
+        Date currYearLast = calendar.getTime();
+        return currYearLast;
+    }
+
+    public static int getMonthDayCount(Date date) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+    }
+
+    public static long getDayLeft(Date endDate) {
+        long timeLeft = 0L;
+        try {
+            Date now = new Date(System.currentTimeMillis());
+            long lefttime = (endDate.getTime() - now.getTime()) / 1000;
+            long day = lefttime / (24 * 60 * 60);
+            return day;
+        } catch (Exception e) {
+        }
+        return timeLeft;
+    }
+
+    public static String getTimeLeft(Date endDate) {
+        String timeLeft = "";
+        try {
+            Date now = new Date(System.currentTimeMillis());
+            long lefttime = (endDate.getTime() - now.getTime()) / 1000;
+            long day = lefttime / (24 * 60 * 60);
+            long hour = lefttime / (60 * 60) - day * 24;
+            long minute = lefttime / 60 - day * 24 * 60 - hour * 60;
+            long second = lefttime - day * 24 * 60 * 60 - hour * 60 * 60 - minute * 60;
+            timeLeft = (day + "天" + hour + "小时" + minute + "分" + second + "秒");
+        } catch (Exception e) {
+        }
+        return timeLeft;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(lastSecondOfDay(new Date()));
+        System.out.println(getCurrentDateTime());
+        System.out.println(getMonthDayCount(new Date()));
+        System.out.println(getMonthDayCount(DateUtils.str2Date("2017-02-03")));
+
+    }
+}
