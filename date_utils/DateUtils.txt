@@ -43,23 +43,6 @@ public class DateUtils {
         return date;
     }
 
-    public static boolean vaildFormat(String str, String pattern) {
-        DateFormat format;
-        try {
-            if (str.length() != pattern.length()) {
-                return false;
-            }
-
-            format = new SimpleDateFormat(pattern, Locale.CHINESE);
-            format.setLenient(false);
-            format.parse(str);
-        } catch (Exception e) {
-            logger.debug("字符：{}转换成时间格式：{}，失败", str, pattern);
-            return false;
-        }
-        return true;
-    }
-
     public static Date str2Date(String str) {
         return str2Date(str, FORMAT_DATE);
     }

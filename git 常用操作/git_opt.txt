@@ -1,0 +1,24 @@
+git init  初始化
+
+git add / add . 
+
+git add -p
+
+git commit -m ""
+
+git push -u origin master 
+
+git push
+
+
+
+/////////////////////////////////
+
+
+git add .  <->  git reset head .
+
+git commit -m ""　＜－＞　git reset --hard head^(之上一版本) | git reset --hard commid（指定提交id）
+
+				    --soft（源文件不修改）               --soft 
+
+     	
