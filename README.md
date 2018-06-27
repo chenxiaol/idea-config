@@ -1,2 +1,2 @@
-# idea-config
-//idea setting 配置
+// 平常可能用的到的整理
+
