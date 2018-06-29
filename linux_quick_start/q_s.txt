@@ -1,0 +1,13 @@
+//nginx 启动
+
+./sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+
+// zk 启动
+
+./bin/zkServer.sh start  默认使用conf/zoo.cfg
+
+// redis 启动
+
+redis-server  /usr/local/redis/redis_model.conf
+
+mysql systemctl start
