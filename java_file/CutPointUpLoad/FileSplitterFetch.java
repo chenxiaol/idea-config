@@ -1,9 +1,12 @@
-package Just_Test.CutPointUpLoad;
+package PointUpload.MultiThreadPointUpload;
 
 /*
 **FileSplitterFetch.java
 */
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -12,13 +15,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class FileSplitterFetch extends Thread {
-	String sURL; //File URL
+
+	private static volatile boolean bStop = false; //Stop identical
+
+	private String sURL; //File URL
 	long nStartPos; //File Snippet Start Position
 	long nEndPos; //File Snippet End Position
-	int nThreadID; //Thread's ID
+	private final int nThreadID; //Thread's ID
 	boolean bDownOver = false; //Downing is over
-	boolean bStop = false; //Stop identical
-	FileAccessI fileAccessI = null; //File Access interface
+	private FileAccessI fileAccessI = null; //File Access interface
 
 	public FileSplitterFetch(String sURL, String sName, long nStart, long nEnd, int id)
 			throws IOException {
@@ -29,29 +34,46 @@ public class FileSplitterFetch extends Thread {
 		fileAccessI = new FileAccessI(sName, nStartPos);
 	}
 
+	@Override
 	public void run() {
 		while (nStartPos < nEndPos && !bStop) {
 			try {
 				URL url = new URL(sURL);
 				HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
 				httpConnection.setRequestProperty("User-Agent", "NetFox");
-				String sProperty = "bytes=" + nStartPos + "-";
+				String sProperty = "bytes=" + nStartPos + "-" + nEndPos;
 				httpConnection.setRequestProperty("RANGE", sProperty);
 				Utility.log(sProperty);
-				InputStream input = httpConnection.getInputStream();
 				//logResponseHead(httpConnection);
-				byte[] b = new byte[1024];
-				int nRead;
-				while ((nRead = input.read(b, 0, 1024)) > 0 && nStartPos < nEndPos
-						&& !bStop) {
-					nStartPos += fileAccessI.write(b, 0, nRead);
-					//if(nThreadID == 1)
-					// Utility.log("nStartPos = " + nStartPos + ", nEndPos = " + nEndPos);
+
+				try (InputStream input = httpConnection.getInputStream();) {
+					byte[] b = new byte[1024];
+					int nRead;
+					int i = 0;
+					while ((nRead = input.read(b, 0, 1024)) > 0 && nStartPos < nEndPos && !bStop) {
+						nStartPos += fileAccessI.write(b, 0, nRead);
+						/*if ((i++) == 3) {
+							bStop = true;
+						}*/
+					}
+				/*int i;
+				BufferedInputStream bf = new BufferedInputStream(input);
+				while ((i = bf.read()) > 0 && nStartPos < nEndPos && !bStop) {
+					nStartPos += fileAccessI.write(b, 0, i);
+				}*/
+
+					Utility.log("Thread " + nThreadID + " is over!" + "nStartPos : " + nStartPos);
+					bDownOver = true;
+					//nPos = fileAccessI.write (b,0,nRead);
 				}
-				Utility.log("Thread " + nThreadID + " is over!");
-				bDownOver = true;
-				//nPos = fileAccessI.write (b,0,nRead);
 			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		if (bStop) {
+			try {
+				writeStatuIntoFile();
+			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		}
@@ -69,9 +91,24 @@ public class FileSplitterFetch extends Thread {
 		}
 	}
 
-	public void splitterStop() {
+	public static void splitterStop() {
 		bStop = true;
+		System.out.println("change to stop bStop: " + true);
 	}
+
+	public void writeStatuIntoFile() throws IOException {
+		String pathname = "C:\\Users\\Public\\Pictures\\Sample Pictures\\" + nThreadID + ".txt";
+		File file = new File(pathname);
+		if (nStartPos > nEndPos) {
+			file.delete();
+		} else {
+			FileOutputStream fileOutputStream = new FileOutputStream(file);
+			DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream);
+			dataOutputStream.writeLong(nStartPos);
+			dataOutputStream.writeLong(nEndPos);
+		}
+	}
+
 }
 
 /*
@@ -79,8 +116,8 @@ public class FileSplitterFetch extends Thread {
 */
 
 class FileAccessI implements Serializable {
-	RandomAccessFile oSavedFile;
-	long nPos;
+	private RandomAccessFile oSavedFile;
+	private long nPos;
 
 	public FileAccessI() throws IOException {
 		this("", 0);
@@ -92,7 +129,7 @@ class FileAccessI implements Serializable {
 		oSavedFile.seek(nPos);
 	}
 
-	public synchronized int write(byte[] b, int nStart, int nLen) {
+	public int write(byte[] b, int nStart, int nLen) {
 		int n = -1;
 		try {
 			oSavedFile.write(b, nStart, nLen);
@@ -102,6 +139,7 @@ class FileAccessI implements Serializable {
 		}
 		return n;
 	}
+
 }
 
 /*
@@ -188,12 +226,13 @@ class Utility {
 */
 
 class TestMethod {
-	public TestMethod() { ///xx/weblogic60b2_win.exe
+	public TestMethod() {
 		try {
 			//SiteInfoBean bean = new SiteInfoBean("http://localhost:8080/down.zip","L:\\temp",
-			SiteInfoBean bean = new SiteInfoBean("http://39.108.74.219:90/images/aj001.png", "D:\\用户目录\\我的图片", "aj001.png", 5);
+			SiteInfoBean bean = new SiteInfoBean("http://39.108.74.219:90/images/aj001.png", "C:\\Users\\Public\\Pictures\\Sample Pictures", "aj001.png", 5);
 			SiteFileFetch fileFetch = new SiteFileFetch(bean);
 			fileFetch.start();
+			FileSplitterFetch.splitterStop();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
