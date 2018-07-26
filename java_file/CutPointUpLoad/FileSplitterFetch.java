@@ -1,4 +1,4 @@
-package PointUpload.MultiThreadPointUpload;
+package Just_Test.CutPointUpLoad;
 
 /*
 **FileSplitterFetch.java
@@ -16,7 +16,7 @@ import java.net.URL;
 
 public class FileSplitterFetch extends Thread {
 
-	private static volatile boolean bStop = false; //Stop identical
+	private volatile boolean bStop = false; //Stop identical
 
 	private String sURL; //File URL
 	long nStartPos; //File Snippet Start Position
@@ -50,12 +50,17 @@ public class FileSplitterFetch extends Thread {
 					byte[] b = new byte[1024];
 					int nRead;
 					int i = 0;
-					while ((nRead = input.read(b, 0, 1024)) > 0 && nStartPos < nEndPos && !bStop) {
+					int len = 1024;
+					while ((nRead = input.read(b, 0, len)) > 0 && nStartPos < nEndPos && !bStop) {
 						nStartPos += fileAccessI.write(b, 0, nRead);
+						if (nEndPos - nStartPos < len) {
+							len = (int) (nEndPos - nStartPos);
+						}
 						/*if ((i++) == 3) {
-							bStop = true;
+							splitterStop();
 						}*/
 					}
+
 				/*int i;
 				BufferedInputStream bf = new BufferedInputStream(input);
 				while ((i = bf.read()) > 0 && nStartPos < nEndPos && !bStop) {
@@ -77,6 +82,12 @@ public class FileSplitterFetch extends Thread {
 				e.printStackTrace();
 			}
 		}
+		if (nStartPos >= nEndPos) {
+			String pathname = "D:\\用户目录\\我的图片\\temp\\tp\\" + nThreadID + ".txt";
+			File file = new File(pathname);
+			file.delete();
+			file.deleteOnExit();
+		}
 	}
 
 	// 打印回应的头信息
@@ -91,21 +102,24 @@ public class FileSplitterFetch extends Thread {
 		}
 	}
 
-	public static void splitterStop() {
+	public void splitterStop() {
 		bStop = true;
 		System.out.println("change to stop bStop: " + true);
 	}
 
 	public void writeStatuIntoFile() throws IOException {
-		String pathname = "C:\\Users\\Public\\Pictures\\Sample Pictures\\" + nThreadID + ".txt";
+		String pathname = "D:\\用户目录\\我的图片\\temp\\tp\\" + nThreadID + ".txt";
 		File file = new File(pathname);
-		if (nStartPos > nEndPos) {
+		if (nStartPos >= nEndPos) {
 			file.delete();
 		} else {
-			FileOutputStream fileOutputStream = new FileOutputStream(file);
-			DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream);
-			dataOutputStream.writeLong(nStartPos);
-			dataOutputStream.writeLong(nEndPos);
+			try (FileOutputStream fileOutputStream = new FileOutputStream(file);
+					DataOutputStream dataOutputStream = new DataOutputStream(fileOutputStream)) {
+				dataOutputStream.writeLong(nStartPos);
+				dataOutputStream.writeLong(nEndPos);
+				System.out.println("文件临时写入：");
+				System.out.println("ThreadId: " + nThreadID + "nStart: " + nStartPos + "nEnd: " + nEndPos);
+			}
 		}
 	}
 
@@ -229,10 +243,10 @@ class TestMethod {
 	public TestMethod() {
 		try {
 			//SiteInfoBean bean = new SiteInfoBean("http://localhost:8080/down.zip","L:\\temp",
-			SiteInfoBean bean = new SiteInfoBean("http://39.108.74.219:90/images/aj001.png", "C:\\Users\\Public\\Pictures\\Sample Pictures", "aj001.png", 5);
+			SiteInfoBean bean = new SiteInfoBean("http://39.108.74.219:90/images/aj001.png", "D:\\用户目录\\我的图片\\temp\\", "aj001.png", 5);
 			SiteFileFetch fileFetch = new SiteFileFetch(bean);
 			fileFetch.start();
-			FileSplitterFetch.splitterStop();
+			//			FileSplitterFetch.splitterStop();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

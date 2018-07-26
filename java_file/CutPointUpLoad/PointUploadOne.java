@@ -1,4 +1,4 @@
-package PointUpload;
+package Just_Test.CutPointUpLoad;
 
 import java.io.BufferedInputStream;
 import java.io.DataOutputStream;

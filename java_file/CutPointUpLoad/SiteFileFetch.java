@@ -1,4 +1,4 @@
-package PointUpload.MultiThreadPointUpload;
+package Just_Test.CutPointUpLoad;
 
 /*
  /*
@@ -11,7 +11,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -32,7 +31,7 @@ public class SiteFileFetch extends Thread {
 	public SiteFileFetch(SiteInfoBean bean) throws IOException {
 		siteInfoBean = bean;
 		//tmpFile = File.createTempFile ("zhong","1111",new File(bean.getSFilePath()));
-		tmpFile = new File("C:\\Users\\Public\\Pictures\\Sample Pictures\\temp");
+		tmpFile = new File("D:\\用户目录\\我的图片\\temp\\tp");
 		if (null != tmpFile.listFiles() && 0 < tmpFile.listFiles().length) {
 			System.out.println(JSON.toJSON("临时文件:" + tmpFile));
 			bFirst = false;
@@ -122,25 +121,6 @@ public class SiteFileFetch extends Thread {
 		return nFileLength;
 	}
 
-	// 保存下载信息（文件指针位置）
-	public void write_nPos() throws IOException {
-		try {
-			output = new DataOutputStream(new FileOutputStream(tmpFile));
-			output.writeInt(nStartPos.length);
-			for (int i = 0; i < nStartPos.length; i++) {
-				// output.writeLong(nPos[i]);
-				output.writeLong(fileSplitterFetch[i].nStartPos);
-				output.writeLong(fileSplitterFetch[i].nEndPos);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			output.close();
-		}
-	}
-
 	// 读取保存的下载信息（文件指针位置）
 	public void read_nPos(File[] files) throws IOException {
 		DataInputStream input = null;
@@ -149,10 +129,12 @@ public class SiteFileFetch extends Thread {
 			int nCount = files.length;
 			nStartPos = new long[nCount];
 			nEndPos = new long[nCount];
+			System.out.println("读取临时下载记录文件：");
 			for (int i = 0; i < files.length; i++) {
-				input = new DataInputStream(new FileInputStream(new File("C:\\Users\\Public\\Pictures\\Sample Pictures\\temp\\" + i+".txt")));
+				input = new DataInputStream(new FileInputStream(new File("D:\\用户目录\\我的图片\\temp\\tp\\" + i + ".txt")));
 				nStartPos[i] = input.readLong();
 				nEndPos[i] = input.readLong();
+				System.out.println("线程-" + i + " nStart: " + nStartPos[i] + "-nEnd: " + nEndPos[i]);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
