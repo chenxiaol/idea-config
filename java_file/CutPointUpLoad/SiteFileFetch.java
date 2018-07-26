@@ -33,7 +33,7 @@ public class SiteFileFetch extends Thread {
 		siteInfoBean = bean;
 		//tmpFile = File.createTempFile ("zhong","1111",new File(bean.getSFilePath()));
 		tmpFile = new File("C:\\Users\\Public\\Pictures\\Sample Pictures\\temp");
-		if (0 < tmpFile.listFiles().length) {
+		if (null != tmpFile.listFiles() && 0 < tmpFile.listFiles().length) {
 			System.out.println(JSON.toJSON("临时文件:" + tmpFile));
 			bFirst = false;
 			read_nPos(tmpFile.listFiles());
@@ -144,12 +144,13 @@ public class SiteFileFetch extends Thread {
 	// 读取保存的下载信息（文件指针位置）
 	public void read_nPos(File[] files) throws IOException {
 		DataInputStream input = null;
+		//C:\Users\Public\Pictures\Sample Pictures\temp .0 1 2 3 4
 		try {
-			input = new DataInputStream(new FileInputStream(tmpFile));
 			int nCount = files.length;
 			nStartPos = new long[nCount];
 			nEndPos = new long[nCount];
 			for (int i = 0; i < files.length; i++) {
+				input = new DataInputStream(new FileInputStream(new File("C:\\Users\\Public\\Pictures\\Sample Pictures\\temp\\" + i+".txt")));
 				nStartPos[i] = input.readLong();
 				nEndPos[i] = input.readLong();
 			}
