@@ -6,6 +6,8 @@ git add -p
 
 git commit -m ""
 
+git remote add origin  ÄãµÄÔ¶³Ì²Ö¿âµÄurl
+
 git push -u origin master 
 
 git push
